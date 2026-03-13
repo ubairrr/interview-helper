@@ -216,6 +216,6 @@ Distributed under the GNU General Public License v3.0 (GPLv3). See `LICENSE` for
 ## ✉️ Contact
 
 **Let's connect:**
-- **LinkedIn**: [Your Name](https://linkedin.com/in/yourprofile)
-- **GitHub**: [@yourusername](https://github.com/yourusername)
-- **Email**: you@example.com
+- **LinkedIn**: [Mustafa Ubair](https://www.linkedin.com/in/mustafaubair)
+- **GitHub**: [@ubairrr](https://github.com/ubairrr)
+- **Email**: mustafaubair@gmail.com
