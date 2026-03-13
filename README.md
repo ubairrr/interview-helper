@@ -178,7 +178,16 @@ This project drastically expanded my proficiency in OS-level API integration acr
 
 ---
 
+## 📸 Demo
+
+> The overlay in action — floating translucent panel, live AI transcript, and real-time Vision analysis result. Completely invisible to screen-sharing software.
+
+![Interview Helper Demo](assets/demo.png)
+
+---
+
 ## 🔮 Future Enhancements
+
 
 - **Windows Architecture Parity**: Migrating the stealth capabilities to Windows via `SetWindowDisplayAffinity` (WDA_EXCLUDEFROMCAPTURE).
 - **Automated Ideation (Local)**: Shifting the LLM processing fully locally via `Ollama` / `LMStudio` to guarantee absolute data privacy and zero network dependency.
