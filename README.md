@@ -116,9 +116,9 @@ Triggering the vision hotkey initiates a complex synchronous thread:
 - **Node.js** (v18 or higher)
 - **API Keys**: Deepgram and NVIDIA (or compatible OpenAI endpoints).
 
-### 1. Initialize Project Directory
-If you have access to the source code, navigate to the extracted directory:
+### 1. Clone the Repository
 ```bash
+git clone https://github.com/ubairrr/interview-helper.git
 cd interview-helper
 ```
 
