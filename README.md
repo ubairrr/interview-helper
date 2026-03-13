@@ -17,11 +17,12 @@
 - [Key Features](#-key-features)
 - [Technical Stack](#-technical-stack)
 - [Architecture & Design](#-architecture--design)
-- [Installation setup](#️-installation-setup)
+- [How It Works](#-how-it-works)
+- [Installation & Setup](#-installation--setup)
+- [Demo](#-demo)
 - [Usage](#-usage)
 - [Challenges & Learnings](#-challenges--learnings)
 - [Future Enhancements](#-future-enhancements)
-- [Demo / Screenshots](#-demo--screenshots)
 - [Contributing](#-contributing)
 - [License](#-license)
 - [Contact](#-contact)
@@ -192,14 +193,6 @@ This project drastically expanded my proficiency in OS-level API integration acr
 - **Windows Architecture Parity**: Migrating the stealth capabilities to Windows via `SetWindowDisplayAffinity` (WDA_EXCLUDEFROMCAPTURE).
 - **Automated Ideation (Local)**: Shifting the LLM processing fully locally via `Ollama` / `LMStudio` to guarantee absolute data privacy and zero network dependency.
 - **IDE-Specific Parsing**: Instead of full-screen captures, implementing hooks to only capture specific bounds of recognized IDEs (VS Code, IntelliJ).
-
----
-
-## 📸 Demo / Screenshots
-
-*(Replace with actual links or embedded gifs of the product in action)*
-- [View Live Demo Video](#)
-- [Screenshot: Floating Overlay in Action](#)
 
 ---
 
