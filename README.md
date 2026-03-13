@@ -141,6 +141,50 @@ VISION_API_URL=https://integrate.api.nvidia.com/v1
 
 ---
 
+## 🔧 Using a Different AI Model
+
+Interview Helper uses the **OpenAI-compatible API format**, which means you can swap in any provider or model that exposes a `/v1/chat/completions` endpoint. The app resolves configuration in **priority order**:
+
+1. **In-App Settings** (highest priority) — persisted via `electron-store`
+2. **`.env` file** (fallback) — loaded on app startup
+
+### Method 1: In-App Settings Panel
+While in **Normal mode**, click the **⚙ Settings** gear icon in the header. You'll see four configurable fields:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| **Deepgram API Key** | Your Deepgram key for real-time audio transcription | `dg_...` |
+| **NVIDIA API Key** | API key for your LLM/Vision provider | `nvapi-...` |
+| **Vision API URL** | Base URL of the OpenAI-compatible endpoint | `https://integrate.api.nvidia.com/v1` |
+| **Vision Model** | The model identifier to use for both text and vision | `meta/llama-3.2-90b-vision-instruct` |
+
+Settings saved here **override** the `.env` values and persist across app restarts.
+
+### Method 2: `.env` File
+Edit the `.env` file in the project root:
+```env
+DEEPGRAM_API_KEY=your_deepgram_api_key
+NVIDIA_API_KEY=your_provider_api_key
+VISION_MODEL=your-model-name
+VISION_API_URL=https://your-provider.com/v1
+```
+
+### Popular Compatible Providers
+
+| Provider | `VISION_API_URL` | Example `VISION_MODEL` |
+|----------|------------------|------------------------|
+| **NVIDIA NIM** | `https://integrate.api.nvidia.com/v1` | `meta/llama-3.2-90b-vision-instruct` |
+| **OpenAI** | `https://api.openai.com/v1` | `gpt-4o` |
+| **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
+| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-3.5-sonnet` |
+| **Local (Ollama)** | `http://localhost:11434/v1` | `llava` |
+| **Local (LM Studio)** | `http://localhost:1234/v1` | `your-loaded-model` |
+
+> [!NOTE]
+> For **Vision Assist** (screen analysis) to work, the model you choose must support **image inputs**. Text-only models will work for answering transcribed questions but will fail on screenshot analysis.
+
+---
+
 ## 🎮 Usage
 
 ### Running Locally
