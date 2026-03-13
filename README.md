@@ -146,12 +146,23 @@ npm start
 ```
 *Note: Upon launch, the app behaves as a floating, borderless daemon. It deliberately will not appear in your macOS Dock.*
 
-### Keybindings & Controls
-- **`Cmd+Opt+Shift+M`**: Trigger Screen Capture Vision Analysis
-- **`Cmd+Opt+Shift+H`**: Toggle Stealth / Click-Through Mode
-- **`Cmd+Opt+Shift+T`**: Toggle Microphone Transcription 
-- **`Cmd+Opt+Shift+D`**: Dismiss Active Context / Clear Screen
-- **`Cmd+Opt+Shift + (Arrows)`**: Adjust Font Size & Scroll Transcripts
+### ⌨️ Keybindings & Controls
+
+All hotkeys are global and work even when the app window is not focused.
+
+| Hotkey | Action |
+|--------|--------|
+| `⌘ + ⌥ + ⇧ + M` | **Vision Assist** — captures the full screen and sends it to the AI for analysis |
+| `⌘ + ⌥ + ⇧ + H` | **Toggle Mode** — switches between Stealth (transparent/click-through) and Normal mode |
+| `⌘ + ⌥ + ⇧ + T` | **Toggle Mic** — toggles your microphone transcription on or off |
+| `⌘ + ⌥ + ⇧ + D` | **Dismiss Vision Panel** — clears and hides the active Vision analysis card |
+| `⌘ + ⌥ + ⇧ + ↑` | **Scroll Up** — scrolls the transcript log upward |
+| `⌘ + ⌥ + ⇧ + ↓` | **Scroll Down** — scrolls the transcript log downward |
+| `⌘ + ⌥ + ⇧ + →` | **Font Size +** — increases the transcript text size |
+| `⌘ + ⌥ + ⇧ + ←` | **Font Size −** — decreases the transcript text size |
+
+> **Legend:** `⌘` = Command &nbsp;|&nbsp; `⌥` = Option &nbsp;|&nbsp; `⇧` = Shift
+
 
 ---
 
