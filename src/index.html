@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Interview Overlay</title>
+    <!-- Content Security Policy for Electron to suppress default warnings -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            /* A semi-transparent black overlay so the user can see it but still view code underneath */
+            background-color: rgba(20, 20, 20, 0.85);
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-sizing: border-box;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 10px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            -webkit-app-region: drag;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff3b30;
+            /* Red for recording */
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(255, 59, 48, 0.6);
+        }
+
+        .content {
+            padding: 15px;
+            flex-grow: 1;
+            overflow-y: hidden;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        .ai-label {
+            color: #0a84ff;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+
+        .sys-label {
+            color: #30d158;
+            font-weight: bold;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <span>AI Assistant (Invisible Mode)</span>
+        <div class="status-indicator">
+            <div class="dot"></div>
+            <span>Listening</span>
+        </div>
+    </div>
+    <div class="content" id="messages-container">
+        <div class="message"><span class="sys-label">System:</span> Overlay initialized. Waiting for audio or hotkey
+            (Cmd+Shift+Opt+M).</div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        const container = document.getElementById('messages-container');
+
+        function appendMessage(sender, text, isAi = false) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+            msgDiv.innerHTML = `<span class="${isAi ? 'ai-label' : 'sys-label'}">${sender}:</span> ${text}`;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Bridge native macOS window dragging
+        const header = document.querySelector('.header');
+        header.addEventListener('mouseenter', () => ipcRenderer.send('set-ignore-mouse-events', false));
+        header.addEventListener('mouseleave', () => ipcRenderer.send('set-ignore-mouse-events', true, { forward: true }));
+
+        ipcRenderer.on('hotkey-triggered', (event, message) => {
+            appendMessage('System', 'Global hotkey pressed. Capturing screen...', false);
+        });
+
+        ipcRenderer.on('capture-success', (event, base64Image) => {
+            appendMessage('System', 'Screen captured successfully. Sending to Vision API...', false);
+            // Render the base64 image thumbnail inside the message log
+            const imgDiv = document.createElement('div');
+            imgDiv.style.marginTop = "8px";
+            imgDiv.style.marginBottom = "12px";
+            imgDiv.innerHTML = `<img src="${base64Image}" style="max-width: 100%; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);" />`;
+            container.appendChild(imgDiv);
+            container.scrollTop = container.scrollHeight;
+        });
+
+        ipcRenderer.on('vision-analysis-success', (event, analysisMsg) => {
+            appendMessage('AI Visual', analysisMsg, true);
+        });
+    </script>
+    <script src="audio.js"></script>
+</body>
+
+</html>

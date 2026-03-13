@@ -1,0 +1,36 @@
+{
+  "name": "interview-helper",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">",
+  "main": "src/main.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev:vite": "vite src/renderer --host",
+    "dev:electron": "wait-on http://localhost:5173 && electron . --enable-features=MacLoopbackAudioForScreenShare",
+    "start": "concurrently --kill-others \"npm run dev:vite\" \"npm run dev:electron\"",
+    "build": "vite build src/renderer --outDir dist",
+    "start:prod": "NODE_ENV=production electron . --enable-features=MacLoopbackAudioForScreenShare"
+  },
+  "keywords": [],
+  "author": "ubairrr",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "concurrently": "^9.2.1",
+    "electron": "^40.6.1",
+    "vite": "^7.3.1",
+    "wait-on": "^9.0.4"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^4.11.3",
+    "dotenv": "^17.3.1",
+    "electron-store": "^8.2.0",
+    "openai": "^6.25.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.1"
+  }
+}
