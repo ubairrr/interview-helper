@@ -136,6 +136,9 @@ VISION_MODEL=meta/llama-3.2-90b-vision-instruct
 VISION_API_URL=https://integrate.api.nvidia.com/v1
 ```
 
+> [!IMPORTANT]
+> **macOS Permissions Required**: Upon the first launch, macOS will prompt you for **Screen Recording** and **Microphone** permissions. These are strictly required for the Audio Ingestion and Vision analysis engines to function. If you don't see the prompt, you may need to add the app manually in `System Settings > Privacy & Security`.
+
 ---
 
 ## 🎮 Usage
