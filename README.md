@@ -12,6 +12,15 @@
 
 ---
 
+> [!CAUTION]
+> **Disclaimer: For Educational Purposes Only**
+> 
+> This software was created strictly as a technical proof-of-concept to demonstrate how modern desktop applications can integrate low-level macOS APIs, real-time audio WebSockets, and AI vision models. 
+> 
+> **Using this software to cheat during actual interviews or assessments may be illegal, violates professional integrity, and is strongly discouraged.** This project is meant to showcase *how* such an application can be built, **not** to be used as a tool for cheating.
+
+---
+
 ## 📑 Table of Contents
 - [Introduction](#-introduction)
 - [Key Features](#-key-features)
