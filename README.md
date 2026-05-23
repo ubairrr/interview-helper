@@ -4,7 +4,7 @@
 
 **A minimal-footprint, low-latency AI desktop overlay built to conquer technical and behavioral interviews entirely undetected.**
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg?cacheSeconds=2592000)
 ![macOS](https://img.shields.io/badge/os-macOS_only-lightgrey.svg)
 ![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)
 
@@ -23,6 +23,7 @@
 
 ## 📑 Table of Contents
 - [Introduction](#-introduction)
+- [Release Notes (v1.1.0)](#-release-notes-v110)
 - [Key Features](#-key-features)
 - [Technical Stack](#-technical-stack)
 - [Architecture & Design](#-architecture--design)
@@ -45,6 +46,18 @@ In an era of increasingly intense remote technical evaluations, candidates often
 It is a specialized macOS desktop application acting as a real-time, interactive safety net. Operating exclusively as a translucent, floating window, the system uses dual audio pipelines to transcribe both the interviewer's questions and your responses in real-time. Paired with on-demand screen contextualization using advanced Vision AI, it instantly streams concise, highly accurate algorithmic approaches and code syntax directly into your field of view.
 
 **The defining characteristic? Absolute stealth.** Through low-level macOS API overrides, the application remains mathematically invisible to all modern conference software (Zoom, Google Meet, MS Teams, etc.) and hides entirely from the operating system's Task Manager and Application Dock.
+
+---
+
+## 🆕 Release Notes (v1.1.0)
+
+Version 1.1.0 delivers major UX improvements, bundle optimizations, and reliability fixes:
+
+- **💬 Unified Chat & Vision Flow**: The separate `VisionPanel` overlay has been completely removed. Screenshots and Vision AI analysis results are now rendered directly inline inside the main `TranscriptLog` alongside normal voice-transcribed messages.
+- **📱 Dynamic Window Resizing**: Integrated automatic height resizing in `App.jsx`. The Electron window now adjusts dynamically to the height of your transcripts up to the screen height, ensuring no answers are hidden.
+- **👶 "Fresher" Prompt Customization**: Overhauled both the standard and vision system prompts. The AI now responds in highly simplified, direct, everyday English without complex technical keywords (unless explicitly requested), specifically optimized for a fresher/entry-level persona.
+- **⚡ ~78% Frontend Bundle Reduction**: Completely removed heavy Markdown-rendering and syntax-highlighting dependencies from the renderer bundle. Simple, lightning-fast regex formatting handles code blocks with low latency and memory footprints.
+- **🛠️ Truncation & API Compatibility Fixes**: Increased max tokens to `4096` and eliminated custom API configuration keys (like `max_completion_tokens`) that triggered `400 Bad Request` errors on certain OpenAI-compatible proxies (including Gemini endpoints).
 
 ---
 
