@@ -1,0 +1,26 @@
+# ==============================================================================
+# Interview Helper - System & Project Requirements
+# ==============================================================================
+
+# OS & Environment
+macOS>=12.0                # Mandatory for native loopback capture & window sharing blocks
+Node.js>=18.0.0            # Runtime environment
+npm>=9.0.0                 # Package manager
+
+# Main Project Dependencies (npm)
+@deepgram/sdk>=4.11.3      # Audio transcription SDK
+dotenv>=17.3.1             # Local configuration manager
+electron-store>=8.2.0      # Persistent desktop app settings
+openai>=6.25.0             # OpenAI client (handles LLM & Vision requests)
+react>=19.2.4              # UI framework
+react-dom>=19.2.4          # React DOM renderer
+
+# Development Dependencies
+electron>=40.6.1           # Electron framework
+vite>=7.3.1                # Frontend builder and dev server
+concurrently>=9.2.1        # Parallel shell execution
+wait-on>=9.0.4             # Electron process delay synchronization
+
+# Third-Party API requirements
+Deepgram API Key           # Required for audio loopback transcription
+OpenAI-Compatible LLM Key  # API key for Gemini, NVIDIA, OpenAI, or other providers
