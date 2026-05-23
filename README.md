@@ -53,11 +53,20 @@ It is a specialized macOS desktop application acting as a real-time, interactive
 
 Version 1.1.0 delivers major UX improvements, bundle optimizations, and reliability fixes:
 
-- **💬 Unified Chat & Vision Flow**: The separate `VisionPanel` overlay has been completely removed. Screenshots and Vision AI analysis results are now rendered directly inline inside the main `TranscriptLog` alongside normal voice-transcribed messages.
-- **📱 Dynamic Window Resizing**: Integrated automatic height resizing in `App.jsx`. The Electron window now adjusts dynamically to the height of your transcripts up to the screen height, ensuring no answers are hidden.
-- **👶 "Fresher" Prompt Customization**: Overhauled both the standard and vision system prompts. The AI now responds in highly simplified, direct, everyday English without complex technical keywords (unless explicitly requested), specifically optimized for a fresher/entry-level persona.
-- **⚡ ~78% Frontend Bundle Reduction**: Completely removed heavy Markdown-rendering and syntax-highlighting dependencies from the renderer bundle. Simple, lightning-fast regex formatting handles code blocks with low latency and memory footprints.
-- **🛠️ Truncation & API Compatibility Fixes**: Increased max tokens to `4096` and eliminated custom API configuration keys (like `max_completion_tokens`) that triggered `400 Bad Request` errors on certain OpenAI-compatible proxies (including Gemini endpoints).
+### 1. Unified Interface & Flow
+- **Inline Vision Assist**: Removed the dedicated `VisionPanel` overlay layout. All screenshots and Vision AI responses now render seamlessly inline inside the primary `TranscriptLog` alongside your voice transcriptions.
+- **Auto-Scaling Layout**: Integrated a dynamic resize helper (`resizeToFitContent`) inside the main layout. The Electron overlay window automatically expands or shrinks vertically based on the height of your transcripts up to the screen limit, guaranteeing answers are fully visible and readable.
+
+### 2. Tailored "Fresher" AI Persona & Formatting
+- **Simpler System Prompts**: Refactored the core system prompts for both the Voice LLM and the Vision LLM. The AI now responds in highly simplified, direct, everyday English with no advanced engineering jargon or complex technical keywords unless explicitly requested.
+- **Compact, Structured Outputs**: Standardized responses to deliver a brief (under 100 words), direct answer first, and then append a single, simple, working code block (defaulting to Python) at the very end when relevant.
+
+### 3. API Reliability & Truncation Fixes
+- **Increased Token Budget**: Shifted `max_tokens` to `4096` to resolve truncation issues mid-sentence/mid-code.
+- **Removed Incompatibilities**: Excised the strict `max_completion_tokens` parameter from the OpenAI completion call. This fixed the `400 Bad Request` connectivity errors previously thrown when connecting to custom OpenAI-compatible proxies (like Google Gemini).
+
+### 4. Performance & Footprint Reductions
+- **Frontend Bundle Optimization**: Stripped out heavy third-party Markdown-rendering and syntax-highlighting libraries. Replaced them with custom, lightning-fast regex parsers inside `TranscriptLog.jsx` to render code blocks with near-zero latency and a **~78% smaller bundle size**.
 
 ---
 
