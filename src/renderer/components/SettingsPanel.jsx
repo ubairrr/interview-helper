@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 const FIELDS = [
     { key: 'deepgramApiKey', label: 'Deepgram API Key', placeholder: 'dg_...' },
-    { key: 'nvidiaApiKey', label: 'NVIDIA API Key', placeholder: 'nvapi-...' },
-    { key: 'visionApiUrl', label: 'Vision API URL', placeholder: 'https://integrate.api.nvidia.com/v1' },
-    { key: 'visionModel', label: 'Vision Model', placeholder: 'meta/llama-3.2-90b-vision-instruct' },
+    { key: 'llmApiKey', label: 'LLM API Key', placeholder: 'AIzaSy... (Gemini) or nvapi-... (NVIDIA)' },
+    { key: 'llmApiUrl', label: 'LLM API URL', placeholder: 'https://generativelanguage.googleapis.com/v1beta/ or https://integrate.api.nvidia.com/v1' },
+    { key: 'llmModel', label: 'LLM Model', placeholder: 'gemini-2.5-flash or meta/llama-3.2-90b-vision-instruct' },
+    { key: 'llmVisionModel', label: 'LLM Vision Model (Optional)', placeholder: 'gemini-1.5-pro (falls back to LLM Model)' },
 ];
 
 export default function SettingsPanel({ onClose }) {

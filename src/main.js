@@ -19,10 +19,11 @@ const SAMPLE_RATE = 16000;
 const BYTES_PER_SAMPLE = 2; // Int16
 const CHANNELS = 1;
 
-const openai = new OpenAI({
-  apiKey: store.get('nvidiaApiKey') || process.env.NVIDIA_API_KEY,
-  baseURL: store.get('visionApiUrl') || process.env.VISION_API_URL
-});
+function getLLMClient() {
+  const apiKey = store.get('llmApiKey') || process.env.LLM_API_KEY;
+  const baseURL = store.get('llmApiUrl') || process.env.LLM_API_URL;
+  return new OpenAI({ apiKey, baseURL });
+}
 
 function convertFloat32ToInt16(chunk) {
   const pcm16 = new Int16Array(chunk.length);
@@ -41,19 +42,30 @@ async function triggerLLM(questionText) {
   if (!llmSender) return;
   try {
     console.log(`[LLM] Triggering with question: "${questionText.substring(0, 80)}..."`);
-    const response = await openai.chat.completions.create({
-      model: store.get('visionModel') || process.env.VISION_MODEL,
+    const model = store.get('llmModel') || process.env.LLM_MODEL;
+    const response = await getLLMClient().chat.completions.create({
+      model,
       messages: [
         {
           role: 'system',
-          content: `You are answering a technical interview question. Rules: No filler phrases like "Great question" or "That's interesting". No unnecessary jargon. Be direct — start with the answer immediately. Explain clearly and concisely as if speaking to the interviewer. Keep the explanation short enough to say out loud in under 2 minutes. If the question asks for code or an implementation, include the complete working code inside a single \`\`\` code block after your explanation. Default to Python unless a different language is specifically requested.`
+          content: `You are answering a technical interview question at a fresher/entry-level.
+
+Rules:
+1. Keep the answer extremely basic, simple, and direct. Explain concepts in plain, everyday English.
+2. Avoid ALL technical keywords, complex jargon, or deep engineering concepts unless explicitly asked to explain them.
+3. Keep the response very short and concise (under 45-60 seconds when spoken aloud).
+4. Direct Answer: Start immediately with the core answer in 1-2 simple sentences. No filler, introductions, or greetings (do NOT say "Sure", "Okay", "Great question", etc.).
+5. Key Points: Provide at most 2 brief, simple bullet points. Keep explanations completely beginner-friendly.
+6. Code: If it is a coding question, or if the question explicitly asks for code/implementation, include a single, simple, working code block at the very end. Default to Python.
+
+Tone: Clear, enthusiastic, basic, and natural to speak out loud.`
         },
         {
           role: 'user',
           content: questionText
         }
       ],
-      max_tokens: 2048
+      max_tokens: 4096
     });
     const answer = response.choices[0].message.content;
     llmSender.send('llm-answer', answer);
@@ -247,9 +259,10 @@ function createWindow() {
 
   ipcMain.handle('get-settings', () => ({
     deepgramApiKey: store.get('deepgramApiKey'),
-    nvidiaApiKey: store.get('nvidiaApiKey'),
-    visionApiUrl: store.get('visionApiUrl'),
-    visionModel: store.get('visionModel'),
+    llmApiKey: store.get('llmApiKey'),
+    llmApiUrl: store.get('llmApiUrl'),
+    llmModel: store.get('llmModel'),
+    llmVisionModel: store.get('llmVisionModel'),
   }));
 
   ipcMain.handle('set-setting', (_event, key, value) => {
@@ -291,30 +304,39 @@ app.whenReady().then(() => {
           const imageBase64 = resized.toDataURL();
 
           mainWindow.webContents.send('capture-success', imageBase64);
-          mainWindow.webContents.send('vision-analysis-success', 'AI is analyzing the screen... Please wait (~10s).');
+          mainWindow.webContents.send('llm-answer', 'AI is analyzing the screen... Please wait (~10s).');
           try {
-            const response = await openai.chat.completions.create({
-              model: store.get('visionModel') || process.env.VISION_MODEL,
+            const model = store.get('llmVisionModel') || process.env.LLM_VISION_MODEL || store.get('llmModel') || process.env.LLM_MODEL;
+            const response = await getLLMClient().chat.completions.create({
+              model,
               messages: [
                 {
                   role: 'system',
-                  content: 'You are an elite senior software engineer helping a candidate pass a technical interview. Analyze the provided screenshot. If it is a coding problem, you MUST structure your response into exactly two parts:\n1. A brief explanation of how we are going to solve the problem (the approach/algorithm).\n2. The actual complete, correct code solution.'
+                  content: `You are helping a fresher candidate pass an interview. Analyze the screenshot.
+
+Rules:
+1. Keep the explanation EXTREMELY simple and basic. No heavy technical jargon.
+2. Be very brief (under 100 words).
+3. If it's a coding problem, give a 1-sentence basic approach, followed immediately by a single, simple, working code block.
+4. Do not use complex formatting.`
                 },
                 {
                   role: 'user',
                   content: [
-                    { type: 'text', text: 'Solve the problem visible on the screen following the required 2-part format. If it is not a coding problem, tell me exactly what to say next.' },
+                    { type: 'text', text: 'Solve the problem visible on the screen. Give a very basic explanation and code.' },
                     { type: 'image_url', image_url: { url: imageBase64 } }
                   ]
                 }
               ],
-              max_tokens: 300
+              max_tokens: 4096
             });
             const analysis = response.choices[0].message.content;
-            mainWindow.webContents.send('vision-analysis-success', analysis);
+            console.log(`[Vision Assist] Response (length: ${analysis.length}):`);
+            console.log(analysis);
+            mainWindow.webContents.send('llm-answer', analysis);
           } catch (apiError) {
             console.error('Vision API Error:', apiError);
-            mainWindow.webContents.send('vision-analysis-success', `Error connecting to Vision API: ${apiError.message}`);
+            mainWindow.webContents.send('llm-answer', `Error connecting to Vision API: ${apiError.message}`);
           }
         }
       } catch (e) {

@@ -1,21 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header.jsx';
 import TranscriptLog from './components/TranscriptLog.jsx';
-import VisionPanel from './components/VisionPanel.jsx';
 import SettingsPanel from './components/SettingsPanel.jsx';
 
 export default function App() {
     const [messages, setMessages] = useState([
         { sender: 'System', text: 'Interview AI ready. Press ⌘⇧⌥H to toggle stealth/normal mode. Press ⌘⇧⌥M to analyze screen.', isAI: false, id: Date.now() }
     ]);
-    const [captureImage, setCaptureImage] = useState(null);
-    const [visionText, setVisionText] = useState(null);
     const [showSettings, setShowSettings] = useState(false);
     const [mode, setMode] = useState('stealth');
     const [fontSize, setFontSize] = useState(12);
+    const transcriptRef = useRef(null);
 
-    const addMessage = (sender, text, isAI) => {
-        setMessages(prev => [...prev, { sender, text, isAI, id: Date.now() + Math.random() }]);
+    const addMessage = (sender, text, isAI, image = null) => {
+        setMessages(prev => [...prev, { sender, text, isAI, image, id: Date.now() + Math.random() }]);
+    };
+
+    const resizeToFitContent = () => {
+        setTimeout(() => {
+            if (transcriptRef.current) {
+                const contentH = transcriptRef.current.scrollHeight + 60;
+                const maxHeight = window.screen?.availHeight ? (window.screen.availHeight - 100) : 800;
+                const newHeight = Math.max(400, Math.min(contentH, maxHeight));
+                window.electron.resizeWindow(600, newHeight);
+            }
+        }, 100);
     };
 
     const openSettings = () => {
@@ -37,12 +46,10 @@ export default function App() {
             addMessage('System', '📸 Capturing screen...', false);
         });
         window.electron.on('capture-success', (imageBase64) => {
-            setCaptureImage(imageBase64);
+            addMessage('System', 'Screenshot captured:', false, imageBase64);
+            resizeToFitContent();
         });
-        window.electron.on('vision-analysis-success', (analysis) => {
-            setVisionText(analysis);
-            addMessage('AI', analysis, true);
-        });
+
         window.electron.on('mode-changed', (newMode) => {
             setMode(newMode);
             if (newMode === 'stealth') setShowSettings(false);
@@ -69,15 +76,7 @@ export default function App() {
             addMessage('System', enabled ? '🎤 Mic transcription ON' : '🔇 Mic transcription OFF', false);
         });
         window.electron.on('dismiss-vision', () => {
-            setCaptureImage(null);
-            setVisionText(null);
-            setTimeout(() => {
-                if (transcriptRef.current) {
-                    const contentH = transcriptRef.current.scrollHeight + 60;
-                    const newHeight = Math.max(400, Math.min(contentH, 800));
-                    window.electron.resizeWindow(600, newHeight);
-                }
-            }, 100);
+            resizeToFitContent();
         });
         window.electron.on('scroll-transcript', (direction) => {
             if (transcriptRef.current) {
@@ -89,25 +88,18 @@ export default function App() {
         });
         window.electron.on('llm-answer', (answer) => {
             addMessage('AI', answer, true);
-            // Auto-resize window to fit new content
-            setTimeout(() => {
-                if (transcriptRef.current) {
-                    const contentH = transcriptRef.current.scrollHeight + 60; // +60 for header/padding
-                    const newHeight = Math.max(400, Math.min(contentH, 800));
-                    window.electron.resizeWindow(600, newHeight);
-                }
-            }, 100);
+            resizeToFitContent();
         });
 
         return () => {
-            ['hotkey-triggered', 'capture-success', 'vision-analysis-success',
-                'mode-changed', 'deepgram-ready', 'mic-transcript', 'system-transcript', 'transcript-error',
+            ['hotkey-triggered', 'capture-success', 'mode-changed', 'deepgram-ready',
+                'mic-transcript', 'system-transcript', 'transcript-error',
                 'llm-answer', 'mic-toggle', 'dismiss-vision', 'scroll-transcript', 'change-font-size'
             ].forEach(ch => window.electron.removeAllListeners(ch));
         };
     }, []);
 
-    const transcriptRef = useRef(null);
+
 
     return (
         <div style={{
@@ -126,9 +118,6 @@ export default function App() {
             {showSettings && <SettingsPanel onClose={closeSettings} />}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <TranscriptLog ref={transcriptRef} messages={messages} fontSize={fontSize} />
-                {(captureImage || visionText) && (
-                    <VisionPanel captureImage={captureImage} visionText={visionText} />
-                )}
             </div>
         </div>
     );
