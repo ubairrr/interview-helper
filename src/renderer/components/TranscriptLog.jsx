@@ -64,6 +64,20 @@ const TranscriptLog = forwardRef(function TranscriptLog({ messages, fontSize = 1
                         </span>
                     )}
                     {msg.isAI ? renderText(msg.text) : msg.text}
+                    {msg.image && (
+                        <img
+                            src={msg.image}
+                            alt="Screen capture"
+                            style={{
+                                display: 'block',
+                                maxWidth: '100%',
+                                width: '180px',
+                                borderRadius: '4px',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                marginTop: '6px'
+                            }}
+                        />
+                    )}
                 </div>
             ))}
             <div ref={bottomRef} />
