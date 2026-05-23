@@ -62,8 +62,9 @@ Version 1.1.0 delivers major UX improvements, bundle optimizations, and reliabil
 - **Compact, Structured Outputs**: Standardized responses to deliver a brief (under 100 words), direct answer first, and then append a single, simple, working code block (defaulting to Python) at the very end when relevant.
 
 ### 3. API Reliability & Truncation Fixes
+- **Universal API Endpoints & Model Selection**: Added full support in the Settings panel to configure custom OpenAI-compatible API URLs and select individual models (e.g., Gemini, OpenAI, Groq, OpenRouter, Ollama, LM Studio) dynamically.
 - **Increased Token Budget**: Shifted `max_tokens` to `4096` to resolve truncation issues mid-sentence/mid-code.
-- **Removed Incompatibilities**: Excised the strict `max_completion_tokens` parameter from the OpenAI completion call. This fixed the `400 Bad Request` connectivity errors previously thrown when connecting to custom OpenAI-compatible proxies (like Google Gemini).
+- **Removed Incompatibilities**: Excised the strict `max_completion_tokens` parameter from the OpenAI completion call. This fixed the `400 Bad Request` connectivity errors previously thrown when connecting to custom OpenAI-compatible proxies (including Gemini endpoints).
 
 ### 4. Performance & Footprint Reductions
 - **Frontend Bundle Optimization**: Stripped out heavy third-party Markdown-rendering and syntax-highlighting libraries. Replaced them with custom, lightning-fast regex parsers inside `TranscriptLog.jsx` to render code blocks with near-zero latency and a **~78% smaller bundle size**.
