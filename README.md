@@ -1,300 +1,534 @@
 <div align="center">
 
-# 🕵️‍♂️ Interview Helper: The Undetectable macOS Co-Pilot
+# Interview Helper: The Undetectable macOS Co-Pilot
 
 **A minimal-footprint, low-latency AI desktop overlay built to conquer technical and behavioral interviews entirely undetected.**
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue.svg?cacheSeconds=2592000)
-![macOS](https://img.shields.io/badge/os-macOS_only-lightgrey.svg)
-![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/ubairrr/interview-helper/releases)
+[![macOS](https://img.shields.io/badge/platform-macOS_only-lightgrey.svg)](https://developer.apple.com/macos/)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18-green.svg)](https://nodejs.org/)
+[![Electron](https://img.shields.io/badge/electron-40.x-47848F.svg)](https://www.electronjs.org/)
 
 </div>
 
 ---
 
 > [!CAUTION]
-> **Disclaimer: For Educational Purposes Only**
-> 
-> This software was created strictly as a technical proof-of-concept to demonstrate how modern desktop applications can integrate low-level macOS APIs, real-time audio WebSockets, and AI vision models. 
-> 
-> **Using this software to cheat during actual interviews or assessments may be illegal, violates professional integrity, and is strongly discouraged.** This project is meant to showcase *how* such an application can be built, **not** to be used as a tool for cheating.
+> **For Educational & Demonstration Purposes Only**
+>
+> This project is a technical proof-of-concept demonstrating low-level macOS API integration, real-time audio WebSocket streaming, and multimodal AI pipelines in an Electron desktop app.
+>
+> **Using this software during actual interviews or assessments may violate terms of service, professional ethics standards, and in some jurisdictions may be illegal.** It is provided to showcase *how* such a system can be engineered, not as a tool for dishonest use.
 
 ---
 
-## 📑 Table of Contents
-- [Introduction](#-introduction)
-- [Release Notes (v1.1.0)](#-release-notes-v110)
-- [Key Features](#-key-features)
-- [Technical Stack](#-technical-stack)
-- [Architecture & Design](#-architecture--design)
-- [How It Works](#-how-it-works)
-- [Installation & Setup](#-installation--setup)
-- [Demo](#-demo)
-- [Usage](#-usage)
-- [Challenges & Learnings](#-challenges--learnings)
-- [Future Enhancements](#-future-enhancements)
-- [Contributing](#-contributing)
-- [License](#-license)
-- [Contact](#-contact)
+## Table of Contents
+
+- [What It Does](#what-it-does)
+- [Architecture Overview](#architecture-overview)
+- [Audio Ingestion Pipeline](#audio-ingestion-pipeline)
+- [Vision Analysis Pipeline](#vision-analysis-pipeline)
+- [Stealth Mode Implementation](#stealth-mode-implementation)
+- [Tech Stack](#tech-stack)
+- [IPC Communication Layer](#ipc-communication-layer)
+- [React Component Architecture](#react-component-architecture)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Hotkey Reference](#hotkey-reference)
+- [AI Provider Compatibility](#ai-provider-compatibility)
+- [Release Notes (v1.1.0)](#release-notes-v110)
+- [Known Challenges & Solutions](#known-challenges--solutions)
+- [Future Roadmap](#future-roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🚀 Introduction
+## What It Does
 
-In an era of increasingly intense remote technical evaluations, candidates often struggle with blanking under pressure rather than a lack of foundational knowledge. **Interview Helper** was conceived to solve this critical gap. 
+In an era of increasingly intense remote technical evaluations, candidates often struggle with blanking under pressure rather than a lack of foundational knowledge. **Interview Helper** was conceived to solve this critical gap.
 
-It is a specialized macOS desktop application acting as a real-time, interactive safety net. Operating exclusively as a translucent, floating window, the system uses dual audio pipelines to transcribe both the interviewer's questions and your responses in real-time. Paired with on-demand screen contextualization using advanced Vision AI, it instantly streams concise, highly accurate algorithmic approaches and code syntax directly into your field of view.
+It is a macOS desktop application that acts as an invisible floating overlay during remote video interviews. It:
 
-**The defining characteristic? Absolute stealth.** Through low-level macOS API overrides, the application remains mathematically invisible to all modern conference software (Zoom, Google Meet, MS Teams, etc.) and hides entirely from the operating system's Task Manager and Application Dock.
+1. **Transcribes both sides of the conversation in real time** — your microphone and the interviewer's system audio are processed in parallel through separate Deepgram WebSocket connections, labeled "You" and "Interviewer" in the transcript log.
 
----
+2. **Automatically generates AI answers when the interviewer finishes speaking** — a question accumulation state machine buffers speech fragments until Deepgram signals `speech_final`, then fires the full question to any OpenAI-compatible LLM for a concise, spoken-length response.
 
-## 🆕 Release Notes (v1.1.0)
+3. **Analyzes your screen on demand (Vision Assist)** — a single hotkey captures your display, downscales it 50% in-process, and sends it to a multimodal vision model to get an algorithmic approach and working code within ~10 seconds.
 
-Version 1.1.0 delivers major UX improvements, bundle optimizations, and reliability fixes:
-
-### 1. Unified Interface & Flow
-- **Inline Vision Assist**: Removed the dedicated `VisionPanel` overlay layout. All screenshots and Vision AI responses now render seamlessly inline inside the primary `TranscriptLog` alongside your voice transcriptions.
-- **Auto-Scaling Layout**: Integrated a dynamic resize helper (`resizeToFitContent`) inside the main layout. The Electron overlay window automatically expands or shrinks vertically based on the height of your transcripts up to the screen limit, guaranteeing answers are fully visible and readable.
-
-### 2. Tailored "Fresher" AI Persona & Formatting
-- **Simpler System Prompts**: Refactored the core system prompts for both the Voice LLM and the Vision LLM. The AI now responds in highly simplified, direct, everyday English with no advanced engineering jargon or complex technical keywords unless explicitly requested.
-- **Compact, Structured Outputs**: Standardized responses to deliver a brief (under 100 words), direct answer first, and then append a single, simple, working code block (defaulting to Python) at the very end when relevant.
-
-### 3. API Reliability & Truncation Fixes
-- **Universal API Endpoints & Model Selection**: Added full support in the Settings panel to configure custom OpenAI-compatible API URLs and select individual models (e.g., Gemini, OpenAI, Groq, OpenRouter, Ollama, LM Studio) dynamically.
-- **Increased Token Budget**: Shifted `max_tokens` to `4096` to resolve truncation issues mid-sentence/mid-code.
-- **Removed Incompatibilities**: Excised the strict `max_completion_tokens` parameter from the OpenAI completion call. This fixed the `400 Bad Request` connectivity errors previously thrown when connecting to custom OpenAI-compatible proxies (including Gemini endpoints).
-
-### 4. Performance & Footprint Reductions
-- **Frontend Bundle Optimization**: Stripped out heavy third-party Markdown-rendering and syntax-highlighting libraries. Replaced them with custom, lightning-fast regex parsers inside `TranscriptLog.jsx` to render code blocks with near-zero latency and a **~78% smaller bundle size**.
+4. **Remains completely undetectable** — uses macOS `NSWindowSharingNone`, `LSUIElement`, and screen-saver level window layering to stay invisible to Zoom, Google Meet, Teams, WebEx, the Dock, and the Cmd+Tab switcher simultaneously.
 
 ---
 
-## ✨ Key Features
+## Architecture Overview
 
-- **🎙️ Real-time Conversational Tracking**: Achieves sub-second latency by aggressively optimizing the transfer of local macOS audio loopback buffers securely to Deepgram's Nova-2 model via WebSocket.
-- **🧠 Instant Contextual Responses**: Seamlessly connects transcribed interrogations with NVIDIA Llama 3.2 Vision (configured via OpenAI-compatible APIs) to instantly render markdown-formatted, syntax-highlighted solutions on screen.
-- **👁 On-Demand Visual Debugging (The "Panic Button")**: Via a globally registered hotkey, the application securely captures a half-scale state of the candidate's monitor, delivering contextual algorithmic analysis in 10-15 seconds for visual problems like architecture diagrams or whiteboarding.
-- **👻 Undetectable System State**:
-  - The electron window utilizes native `NSWindowSharingNone` flags, permanently excluding the application buffer from screen and window-sharing APIs.
-  - Deploys `LSUIElement` to effectively vanish from the `Cmd+Tab` switcher and "Force Quit" menus.
-- **🛡️ "Click-Through" UI State**: At the press of a shortcut, the overlay engages `ignoreMouseEvents`, turning the floating window physically transparent to the cursor so it never inadvertently intercepts a click meant for the underlying IDE.
+The application is structured around three independent async pipelines coordinated through Electron's IPC layer:
 
----
-
-## 🛠️ Technical Stack
-
-- **Frontend (UI/UX)**: `React 19`, `Vite`, `Tailwind CSS`
-  - *Why?* Tailwind allows for rapid iteration of a brutalist, typography-first UI that relies heavily on deep legibility when superimposed over dark-mode coding environments. Vite offers uncompromising build speeds.
-- **Desktop Environment & System APIs**: `Electron`, `Node.js`
-  - *Why?* Electron serves as the bridge. It provides the web-rendering flexibility of Chromium while exposing crucial low-level Node.js modules necessary to interface with macOS WindowServer properties for stealth mechanisms and global hotkey bindings.
-- **AI Processing Pipelines**:
-  - *Audio*: `Deepgram SDK` (Nova-2) — Unmatched realtime WebSocket performance.
-  - *LLM / Text / Vision*: `NVIDIA Llama 3.2 Vision` — Highly capable reasoning model deployed on blazing-fast infrastructure.
-
----
-
-## 🏗️ Architecture & Design
-
-### 1. The Audio Ingestion Engine
-
-```mermaid
-graph TD;
-    A[macOS Audio Loopback] -->|System Audio| C(Electron DesktopCapturer)
-    B[Candidate Mic] -->|Mic Audio| C
-    C -->|Float32 to Int16| D{Audio Processing Node}
-    D -->|WebSocket Stream| E[Deepgram Nova-2]
-    E -->|speech_final + transcript| F[Electron Accumulator]
-    F -->|Context Batch| G[NVIDIA Llama 3.2]
-    G -->|Markdown Stream| H[React Overlay]
+```
+┌──────────────────────────────────────────────────────────┐
+│                    macOS System Layer                      │
+│  NSWindowSharingNone · LSUIElement · screen-saver level   │
+└──────────────────────┬───────────────────────────────────┘
+                       │
+┌──────────────────────▼───────────────────────────────────┐
+│                 Electron Main Process                      │
+│                     (main.js)                             │
+│                                                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌──────────────────┐  │
+│  │ Audio Layer │  │  LLM Layer  │  │  Hotkey Registry │  │
+│  │             │  │             │  │                  │  │
+│  │ Deepgram WS │  │ OpenAI SDK  │  │  8 global        │  │
+│  │ (mic)       │  │ (any compat │  │  shortcuts       │  │
+│  │ Deepgram WS │  │  endpoint)  │  │                  │  │
+│  │ (system)    │  │             │  │                  │  │
+│  └──────┬──────┘  └──────┬──────┘  └────────┬─────────┘  │
+│         └────────────────┼──────────────────┘            │
+│                   IPC Bridge (preload.js)                 │
+│              context-isolated · allowlisted               │
+└──────────────────────┬───────────────────────────────────┘
+                       │
+┌──────────────────────▼───────────────────────────────────┐
+│              Electron Renderer (React 19 + Vite)          │
+│                                                           │
+│  ┌──────────┐  ┌───────────────┐  ┌──────────────────┐   │
+│  │ Header   │  │ TranscriptLog │  │  SettingsPanel   │   │
+│  │          │  │               │  │                  │   │
+│  │ Mode dot │  │ Messages      │  │ 5 config fields  │   │
+│  │ Settings │  │ Code blocks   │  │ electron-store   │   │
+│  │ Close    │  │ Inline images │  │ persistence      │   │
+│  └──────────┘  └───────────────┘  └──────────────────┘   │
+└──────────────────────────────────────────────────────────┘
 ```
 
-Unlike typical browser-based recorders, this app intercepts lower-level audio buffers via Electron's `desktopCapturer`. 
-- It actively splits the audio streams: "System Out" (the interviewer) and "Microphone In" (the user).
-- Both streams are serialized from Float32 immediately to Int16 PCM logic to ensure compatibility and low overhead prior to emitting data over WebSockets.
-- The system employs a "Question Accumulation" state machine: Text is aggregated until Deepgram signals `speech_final`. Once specific character thresholds and deliberate pauses are verified, the context is bundled and fired to the LLM.
+---
 
-### 2. The Vision API Pipeline
+## Audio Ingestion Pipeline
 
-```mermaid
-sequenceDiagram
-    participant U as Candidate (HotKey)
-    participant E as Electron (Main)
-    participant N as Node.js Sharp
-    participant V as Vision LLM API
-    participant R as React (Renderer)
+This is the most technically complex part of the application. Two completely independent audio streams are processed in parallel:
 
-    U->>E: Presses Cmd+Opt+Shift+M
-    E->>E: Trigger desktopCapturer
-    E->>N: Pass Raw 4K Screenshot
-    N->>N: Resize by 50% & Base64 Encode
-    N->>V: Multi-modal Payload + Prompt
-    V-->>E: Algorithmic Approach + Code
-    E->>R: Send via IPC
-    R-->>U: Render Solution on Overlay
+```
+┌─────────────────────┐    ┌───────────────────────┐
+│   Microphone Input  │    │  System Audio (Loopback)│
+│  getUserMedia()     │    │  desktopCapturer +      │
+│                     │    │  chromeMediaSource      │
+└──────────┬──────────┘    └────────────┬────────────┘
+           │                            │
+           ▼                            ▼
+┌──────────────────────────────────────────────────┐
+│          AudioWorkletNode (per stream)            │
+│       audio-processor.js (Float32 → IPC)         │
+└──────────────────────┬───────────────────────────┘
+                       │ IPC (sendMicAudioChunk /
+                       │      sendSystemAudioChunk)
+                       ▼
+┌──────────────────────────────────────────────────┐
+│              Electron Main Process               │
+│   Float32 → Int16 PCM conversion (16kHz mono)   │
+└────────────────┬─────────────┬───────────────────┘
+                 │             │
+                 ▼             ▼
+        ┌────────────┐  ┌────────────┐
+        │ Deepgram   │  │ Deepgram   │
+        │ WS (mic)   │  │ WS (system)│
+        │ label: You │  │ label:     │
+        │            │  │ Interviewer│
+        └─────┬──────┘  └─────┬──────┘
+              │               │
+              ▼               ▼
+      mic-transcript    system-transcript
+           IPC               IPC
+              │               │
+              ▼               ▼
+      Question Accumulation State Machine
+      ─────────────────────────────────
+      • Buffer system-audio fragments
+      • Wait for speech_final flag
+      • Require > 10 chars + pause
+      • Fire accumulated question → LLM
 ```
 
-Triggering the vision hotkey initiates a complex synchronous thread:
-- A raw, high-resolution snapshot of the principal display is captured.
-- To beat network-bound latency overhead resulting from massive payloads, the local Node.js environment processes and downsizes the capture natively before base64 encoding it and appending it to the multimodal API request.
+**Key implementation details:**
+
+- **Sample rate:** 16,000 Hz, mono, Int16 PCM — the exact format Deepgram's Nova-2 expects
+- **Keep-alive:** 10-second interval pings on both WebSocket connections to prevent timeouts during long pauses
+- **Question accumulation:** `currentQuestion` string grows on each `system-transcript` event. On `speech_final` + length check, it's dispatched to the LLM and the buffer resets
+- **Audio capture permission flow:** `requestScreenPermission()` triggers the macOS privacy dialog; `getDesktopSourceId()` fetches the screen source ID needed for `chromeMediaSource: 'desktop'`
 
 ---
 
-## ⚙️ Installation Setup
+## Vision Analysis Pipeline
 
-### Prerequisites
-- **macOS** *(Strict requirement due to heavy reliance on macOS-specific WindowServer flags)*
-- **Node.js** (v18 or higher)
-- **API Keys**: Deepgram and NVIDIA (or compatible OpenAI endpoints).
+Triggered by `⌘⇧⌥M`. The full round-trip from keypress to rendered answer takes ~10–12 seconds:
 
-### 1. Clone the Repository
+```
+User presses ⌘⇧⌥M
+       │
+       ▼
+desktopCapturer.getSources({ types: ['screen'] })
+       │
+       ▼
+Raw high-resolution screenshot (up to 4K / ~4MB)
+       │
+       ▼
+Node.js sharp — 50% downscale in-process (~1MB)
+       │
+       ▼
+Base64 encode → data URL
+       │
+       ▼
+OpenAI-compatible multimodal API call
+  model: llmVisionModel || llmModel
+  max_tokens: 4096
+  messages:
+    - system: "Analyze the problem and provide basic approach + code"
+    - user:   [text prompt] + [image_url: data:image/png;base64,...]
+       │
+       ▼
+Vision LLM response (markdown + code block)
+       │
+  IPC: llm-answer
+       │
+       ▼
+TranscriptLog renders inline alongside transcript
+```
+
+**Why downscale locally?** Sending a raw 4K Retina screenshot added 25+ seconds of latency due to upload size. The sharp-based 50% resize happens in Node.js synchronously in under 100ms, reducing payload by ~75% while preserving all text legibility.
+
+---
+
+## Stealth Mode Implementation
+
+The application uses a layered approach to remain invisible to both conference software and the OS UI:
+
+| Mechanism | API Used | Effect |
+|-----------|----------|--------|
+| Window sharing exclusion | `setContentProtection(true)` → `NSWindowSharingNone` | Excluded from all screen/window capture APIs (Zoom, Meet, Teams, WebEx) |
+| Always on top above capture layer | `setAlwaysOnTop(true, 'screen-saver')` | Floats above screen-sharing window layers visually but excluded from their capture buffer |
+| OS UI invisibility | `LSUIElement = true` in Electron app init | Hidden from Cmd+Tab switcher and Force Quit menu |
+| Dock hiding | `app.dock.hide()` | Never appears in the macOS Dock |
+| Mouse passthrough | `setIgnoreMouseEvents(true, { forward: true })` | Clicks pass through to underlying app; overlay never intercepts cursor |
+| Opacity indicator | 0.95 (stealth) vs 1.0 (normal) | Subtle visual cue for the user about current mode |
+
+**Mode toggle (`⌘⇧⌥H`)** switches between:
+- **Stealth mode:** `ignoreMouseEvents = true`, opacity 0.95, Settings panel hidden
+- **Normal mode:** `ignoreMouseEvents = false`, opacity 1.0, Settings accessible
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Version | Why |
+|-------|-----------|---------|-----|
+| Desktop runtime | Electron | 40.6.1 | Bridges Chromium renderer with Node.js for low-level macOS API access |
+| Frontend framework | React | 19.2.4 | Component model for reactive transcript/settings UI |
+| Build tool | Vite | 7.3.1 | Sub-second HMR; vendor chunk splitting for lean bundles |
+| Audio transcription | @deepgram/sdk | 4.11.3 | WebSocket streaming; Nova-2 model; `speech_final` events |
+| LLM / Vision client | openai | 6.25.0 | OpenAI-compatible adapter pattern works with 7+ providers |
+| Audio processing | AudioWorkletProcessor | Web API | Off-main-thread audio; avoids UI jank from ScriptProcessorNode |
+| Image processing | sharp | (via Electron) | Synchronous 50% downscale before base64 upload |
+| Settings persistence | electron-store | 8.2.0 | File-based key-value store; survives app restarts |
+| Markdown rendering | Custom regex parser | — | Replaced react-markdown + react-syntax-highlighter; 78% smaller bundle |
+| Process management | concurrently + wait-on | 9.2.1 / 9.0.4 | Parallel Vite + Electron dev startup with readiness sync |
+
+---
+
+## IPC Communication Layer
+
+Electron's `contextBridge` exposes a minimal, allowlisted API to the renderer via `preload.js`. No Node.js APIs leak into the browser context.
+
+### Renderer → Main (invokable from React)
+
+```js
+window.electron.startDeepgram()              // Initialize both WebSocket connections
+window.electron.stopDeepgram()               // Tear down all connections
+window.electron.sendMicAudioChunk(chunk)     // Forward Float32Array from mic worklet
+window.electron.sendSystemAudioChunk(chunk)  // Forward Float32Array from system worklet
+window.electron.resizeWindow(width, height)  // Dynamic overlay sizing
+window.electron.setIgnoreMouseEvents(bool)   // Toggle click-through
+window.electron.closeApp()                   // Quit
+window.electron.getSettings()               // Fetch all persisted settings
+window.electron.setSetting(key, value)      // Persist a single setting
+window.electron.getDesktopSourceId()        // Get screen source for system audio
+window.electron.requestScreenPermission()  // Trigger macOS permission dialog
+```
+
+### Main → Renderer (IPC events listened in App.jsx)
+
+```js
+deepgram-ready                 // Connections established
+mic-transcript      → text     // Partial/final mic transcription
+system-transcript   → text     // Partial/final system audio transcription
+transcript-error    → message  // Connection or auth error
+mode-changed        → 'stealth'|'normal'
+hotkey-triggered               // ⌘⇧⌥M pressed, vision capture starting
+capture-success     → base64   // Screenshot ready (inline preview)
+llm-answer          → text     // LLM markdown response
+dismiss-vision                 // ⌘⇧⌥D pressed
+mic-toggle          → bool     // Mic on/off state
+scroll-transcript   → 'up'|'down'
+change-font-size    → delta    // ±1 font size increment
+```
+
+---
+
+## React Component Architecture
+
+### App.jsx — Root (125 lines)
+
+Owns all application state and IPC subscriptions. No external state management library — React's `useState`/`useRef`/`useEffect` is sufficient for this scope.
+
+**State:**
+```js
+messages     // Message[]  — full transcript history
+mode         // 'stealth' | 'normal'
+fontSize     // number     — relative font size, adjusted by hotkey
+showSettings // boolean    — SettingsPanel visibility
+```
+
+**Key behaviors:**
+- `addMessage(type, text, imageUrl?)` — appends to messages array; triggers window resize
+- `resizeToFitContent()` — measures `transcriptRef.scrollHeight + 60px`, clamps to `screen.availHeight - 100px`
+- All IPC listeners registered in a single `useEffect` on mount; properly cleaned up on unmount
+
+---
+
+### TranscriptLog.jsx — Message Display (89 lines)
+
+Renders the conversation history with four distinct message types:
+
+| Type | Visual Style | Source |
+|------|-------------|--------|
+| `ai` | Indigo background, left border, Markdown + code | LLM response |
+| `user` | Light text, "You:" label | Mic transcription |
+| `interviewer` | Light text, "Interviewer:" label | System audio transcription |
+| `system` | Muted background | Status messages |
+
+**Custom code block renderer** (replaced react-markdown + react-syntax-highlighter):
+```js
+// Splits on triple-backtick fences, renders alternating text/pre blocks
+const parts = text.split(/```[\w]*\n?([\s\S]*?)```/g)
+// Even indices = plain text, odd indices = code blocks
+```
+
+This reduced bundle size by ~78% and eliminated a significant render latency spike on first AI response.
+
+**Inline image display:** When a message includes `imageUrl`, renders a 200px-wide preview of the captured screenshot above the AI response.
+
+---
+
+### Header.jsx — Title Bar (107 lines)
+
+```
+┌────────────────────────────────────────────┐
+│ ● STEALTH  [draggable region]   ⚙   ✕    │
+└────────────────────────────────────────────┘
+```
+
+- `WebkitAppRegion: 'drag'` on the title region; `-webkit-app-region: no-drag` on buttons
+- Status dot: green (stealth) or orange (normal)
+- Settings (⚙) and close (✕) buttons only visible in normal mode
+- Pointer events pass through in stealth mode so the overlay doesn't block drags
+
+---
+
+### SettingsPanel.jsx — Configuration Form (80 lines)
+
+In-app settings overlay, accessible only in normal mode via the ⚙ button.
+
+| Field | Key | Type | Description |
+|-------|-----|------|-------------|
+| Deepgram API Key | `deepgramApiKey` | password | Auth for real-time transcription |
+| LLM API Key | `llmApiKey` | password | Auth for text + vision LLM |
+| LLM API URL | `llmApiUrl` | text | Base URL of any OpenAI-compatible endpoint |
+| LLM Model | `llmModel` | text | Model identifier for text responses |
+| LLM Vision Model | `llmVisionModel` | text | Optional override for vision requests (falls back to `llmModel`) |
+
+Settings saved here via `window.electron.setSetting()` → `electron-store` → persist across restarts and take priority over `.env` values.
+
+---
+
+## Installation
+
+**Requirements:**
+- macOS (required — window stealth APIs are macOS-only)
+- Node.js v18 or higher
+
 ```bash
 git clone https://github.com/ubairrr/interview-helper.git
 cd interview-helper
-```
-
-### 2. Install Dependencies
-```bash
 npm install
 ```
 
-### 3. Environment Variables
-Create a `.env` file in the root directory and allocate your API keys:
-```env
-DEEPGRAM_API_KEY=your_deepgram_api_key
-NVIDIA_API_KEY=your_nvidia_api_key
-VISION_MODEL=meta/llama-3.2-90b-vision-instruct
-VISION_API_URL=https://integrate.api.nvidia.com/v1
-```
-
 > [!IMPORTANT]
-> **macOS Permissions Required**: Upon the first launch, macOS will prompt you for **Screen Recording** and **Microphone** permissions. These are strictly required for the Audio Ingestion and Vision analysis engines to function. If you don't see the prompt, you may need to add the app manually in `System Settings > Privacy & Security`.
+> On first launch, macOS will prompt for **Screen Recording** and **Microphone** permissions. Both are required. If the prompt doesn't appear, add the app manually at `System Settings → Privacy & Security → Screen Recording` and `Microphone`.
 
 ---
 
-## 🔧 Using a Different AI Model
+## Configuration
 
-Interview Helper uses the **OpenAI-compatible API format**, which means you can swap in any provider or model that exposes a `/v1/chat/completions` endpoint. The app resolves configuration in **priority order**:
+### Option A: Environment File (recommended for development)
 
-1. **In-App Settings** (highest priority) — persisted via `electron-store`
-2. **`.env` file** (fallback) — loaded on app startup
+```bash
+cp .env.example .env
+```
 
-### Method 1: In-App Settings Panel
-While in **Normal mode**, click the **⚙ Settings** gear icon in the header. You'll see four configurable fields:
-
-| Field | Description | Example |
-|-------|-------------|---------|
-| **Deepgram API Key** | Your Deepgram key for real-time audio transcription | `dg_...` |
-| **NVIDIA API Key** | API key for your LLM/Vision provider | `nvapi-...` |
-| **Vision API URL** | Base URL of the OpenAI-compatible endpoint | `https://integrate.api.nvidia.com/v1` |
-| **Vision Model** | The model identifier to use for both text and vision | `meta/llama-3.2-90b-vision-instruct` |
-
-Settings saved here **override** the `.env` values and persist across app restarts.
-
-### Method 2: `.env` File
-Edit the `.env` file in the project root:
 ```env
 DEEPGRAM_API_KEY=your_deepgram_api_key
-NVIDIA_API_KEY=your_provider_api_key
-VISION_MODEL=your-model-name
-VISION_API_URL=https://your-provider.com/v1
+
+LLM_API_KEY=your_llm_api_key
+LLM_API_URL=https://generativelanguage.googleapis.com/v1beta/
+LLM_MODEL=gemini-2.0-flash-lite
+
+# Optional — only needed if vision model differs from text model
+LLM_VISION_MODEL=gemini-2.0-flash
 ```
 
-### Popular Compatible Providers
+### Option B: In-App Settings Panel
 
-| Provider | `VISION_API_URL` | Example `VISION_MODEL` |
-|----------|------------------|------------------------|
-| **NVIDIA NIM** | `https://integrate.api.nvidia.com/v1` | `meta/llama-3.2-90b-vision-instruct` |
-| **OpenAI** | `https://api.openai.com/v1` | `gpt-4o` |
-| **Groq** | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
-| **OpenRouter** | `https://openrouter.ai/api/v1` | `anthropic/claude-3.5-sonnet` |
-| **Local (Ollama)** | `http://localhost:11434/v1` | `llava` |
-| **Local (LM Studio)** | `http://localhost:1234/v1` | `your-loaded-model` |
+Launch the app, press `⌘⇧⌥H` to enter normal mode, then click the ⚙ icon. Settings saved in-app override `.env` values.
 
-> [!NOTE]
-> For **Vision Assist** (screen analysis) to work, the model you choose must support **image inputs**. Text-only models will work for answering transcribed questions but will fail on screenshot analysis.
+### Configuration Priority
+
+```
+In-App Settings (electron-store)
+        ↓ override
+   .env file values
+        ↓ override
+   Hardcoded defaults
+```
+
+### Running
+
+```bash
+# Development (Vite HMR + Electron, hot-reload on save)
+npm start
+
+# Production build
+npm run build
+npm run start:prod
+```
 
 ---
 
-## 🎮 Usage
+## Hotkey Reference
 
-### Running Locally
-To launch both the Vite frontend server and the Electron application instance in tandem:
-```bash
-npm start
-```
-*Note: Upon launch, the app behaves as a floating, borderless daemon. It deliberately will not appear in your macOS Dock.*
-
-### ⌨️ Keybindings & Controls
-
-All hotkeys are global and work even when the app window is not focused.
+All hotkeys are globally registered and work regardless of which application has focus.
 
 | Hotkey | Action |
 |--------|--------|
-| `⌘ + ⌥ + ⇧ + M` | **Vision Assist** — captures the full screen and sends it to the AI for analysis |
-| `⌘ + ⌥ + ⇧ + H` | **Toggle Mode** — switches between Stealth (transparent/click-through) and Normal mode |
-| `⌘ + ⌥ + ⇧ + T` | **Toggle Mic** — toggles your microphone transcription on or off |
-| `⌘ + ⌥ + ⇧ + D` | **Dismiss Vision Panel** — clears and hides the active Vision analysis card |
-| `⌘ + ⌥ + ⇧ + ↑` | **Scroll Up** — scrolls the transcript log upward |
-| `⌘ + ⌥ + ⇧ + ↓` | **Scroll Down** — scrolls the transcript log downward |
-| `⌘ + ⌥ + ⇧ + →` | **Font Size +** — increases the transcript text size |
-| `⌘ + ⌥ + ⇧ + ←` | **Font Size −** — decreases the transcript text size |
+| `⌘ ⇧ ⌥ M` | **Vision Assist** — capture screen, analyze with multimodal AI |
+| `⌘ ⇧ ⌥ H` | **Toggle Mode** — switch between Stealth and Normal |
+| `⌘ ⇧ ⌥ T` | **Toggle Mic** — enable/disable microphone transcription |
+| `⌘ ⇧ ⌥ D` | **Dismiss Vision** — clear active vision analysis from transcript |
+| `⌘ ⇧ ⌥ ↑` | **Scroll Up** — scroll transcript log upward |
+| `⌘ ⇧ ⌥ ↓` | **Scroll Down** — scroll transcript log downward |
+| `⌘ ⇧ ⌥ →` | **Font Size +** — increase transcript text size |
+| `⌘ ⇧ ⌥ ←` | **Font Size −** — decrease transcript text size |
 
-> **Legend:** `⌘` = Command &nbsp;|&nbsp; `⌥` = Option &nbsp;|&nbsp; `⇧` = Shift
-
-
----
-
-## 🧠 Challenges & Learnings
-
-Developing an application that dances on the edge of the operating system's security features posed significant engineering hurdles:
-
-1. **Combating LLM Trigger-Happiness**: Initially, real-time transcription meant the LLM fired off partial, nonsensical responses mid-sentence. *Solution:* Built a robust buffering state machine tied closely to Deepgram’s `speech_final` flag combined with heuristic pause-detection to confirm the question had fundamentally concluded.
-2. **Vision Payload Latency**: Sending raw 4K Retina display screenshots up the pipe consistently took 25+ seconds, effectively rendering it useless for an interview. *Solution:* Implemented localized image resizing within the Electron main process, slicing the payload size by 75% and reducing round-trip latency to a comfortable 10-12 seconds.
-3. **True Stealth Verification**: Verifying the `NSWindowSharingNone` behavior required substantial empirical testing across versions of Zoom, WebEx, Meet, and Teams, utilizing isolated virtual environments to ensure no "black box" rendering errors bled into the candidate's broadcast.
-
-This project drastically expanded my proficiency in OS-level API integration across macOS, asynchronous socket architectures, and LLM-steerage through system-prompts.
+`⌘` Command · `⇧` Shift · `⌥` Option
 
 ---
 
-## 📸 Demo
+## AI Provider Compatibility
 
-> The overlay in action — floating translucent panel, live AI transcript, and real-time Vision analysis result. Completely invisible to screen-sharing software.
+The application uses the OpenAI SDK with a configurable `baseURL`, making it compatible with any provider that exposes a `/v1/chat/completions` endpoint.
+
+| Provider | LLM API URL | Example Model |
+|----------|-------------|---------------|
+| Google Gemini | `https://generativelanguage.googleapis.com/v1beta/` | `gemini-2.0-flash-lite` |
+| NVIDIA NIM | `https://integrate.api.nvidia.com/v1` | `meta/llama-3.2-90b-vision-instruct` |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o` |
+| Groq | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
+| OpenRouter | `https://openrouter.ai/api/v1` | `anthropic/claude-opus-4-8` |
+| Ollama (local) | `http://localhost:11434/v1` | `llava` |
+| LM Studio (local) | `http://localhost:1234/v1` | *(your loaded model)* |
+
+> **Vision Assist requirement:** For screen analysis (`⌘⇧⌥M`) to work, the selected model must support image inputs. Text-only models handle transcription-based Q&A fine but will fail on screenshot payloads.
+
+---
+
+## Demo
+
+> The overlay in action — floating translucent panel, live transcript with speaker labels, and an inline Vision AI analysis result. Completely invisible to screen-sharing software.
 
 ![Interview Helper Demo](assets/demo.png)
 
 ---
 
-## 🔮 Future Enhancements
+## Release Notes (v1.1.0)
 
+### Unified Interface
+- Vision analysis results now render inline in `TranscriptLog` alongside voice transcripts — no more separate panel
+- `resizeToFitContent()` dynamically expands the overlay window as content grows, up to `screen.availHeight - 100px`
 
-- **Windows Architecture Parity**: Migrating the stealth capabilities to Windows via `SetWindowDisplayAffinity` (WDA_EXCLUDEFROMCAPTURE).
-- **Automated Ideation (Local)**: Shifting the LLM processing fully locally via `Ollama` / `LMStudio` to guarantee absolute data privacy and zero network dependency.
-- **IDE-Specific Parsing**: Instead of full-screen captures, implementing hooks to only capture specific bounds of recognized IDEs (VS Code, IntelliJ).
+### "Fresher" AI Persona
+- Refactored system prompts for both text and vision LLM pipelines
+- Responses are now in plain English, <100 words, with a single code block (Python default) appended when relevant
+- Spoken delivery target: ~45–60 seconds — sounds natural, not overqualified
 
----
+### API Reliability
+- `max_tokens` increased to 4096 — eliminates mid-sentence and mid-code truncation
+- Removed `max_completion_tokens` parameter that caused `400 Bad Request` errors on non-OpenAI endpoints (Gemini, custom proxies)
+- Settings panel now exposes all five configuration fields including a separate vision model override
 
-## 🤝 Contributing
-
-Contributions are heavily encouraged! Since this project is tightly bound to macOS APIs, any pull requests expanding this architecture towards Windows or Linux window managers are highly valued.
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-Distributed under the GNU General Public License v3.0 (GPLv3). See `LICENSE` for more information.
+### Performance
+- Replaced `react-markdown` + `react-syntax-highlighter` with a custom regex-based code block parser
+- Result: ~78% smaller bundle, near-zero first-render latency for AI responses
 
 ---
 
-## ✉️ Contact
+## Known Challenges & Solutions
 
-**Let's connect:**
-- **LinkedIn**: [Mustafa Ubair](https://www.linkedin.com/in/mustafaubair)
-- **GitHub**: [@ubairrr](https://github.com/ubairrr)
-- **Email**: mustafaubair@gmail.com
+**1. LLM firing mid-sentence**
+
+Early versions triggered the LLM on every partial transcript fragment, producing incoherent half-responses. Solution: a question accumulation state machine that only dispatches when Deepgram emits `speech_final` AND the accumulated string exceeds 10 characters, ensuring the interviewer has finished their thought.
+
+**2. Vision payload latency (25s → 10s)**
+
+Raw 4K Retina screenshots weigh ~4MB and took 25+ seconds round-trip. Solution: Node.js `sharp` resizes by 50% synchronously in the main process before base64 encoding, reducing payload to ~1MB and cutting latency to 10–12 seconds.
+
+**3. Stealth mode verification**
+
+`NSWindowSharingNone` behavior had to be verified empirically across Zoom, Google Meet, Teams, and WebEx using isolated virtual environments, since the API's behavior is not perfectly documented and varies across software versions.
+
+**4. System audio on macOS**
+
+Standard `getUserMedia` cannot capture system audio on macOS. The workaround is `desktopCapturer.getSources()` combined with `chromeMediaSource: 'desktop'` constraints — an Electron-specific API that leverages the screen capture permission to also capture loopback audio.
+
+---
+
+## Future Roadmap
+
+- **Windows support** — port stealth mechanisms using `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)`
+- **Fully local mode** — route all LLM calls through Ollama/LM Studio for zero network dependency and data privacy
+- **IDE-aware capture** — instead of full-screen, detect and crop VS Code/IntelliJ window bounds for Vision Assist
+
+---
+
+## Contributing
+
+Contributions welcome, especially for cross-platform stealth mechanisms.
+
+```bash
+git checkout -b feature/your-feature
+git commit -m 'Add your feature'
+git push origin feature/your-feature
+# Open a Pull Request
+```
+
+---
+
+## License
+
+GNU General Public License v3.0 — see [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+
+**Built by [Mustafa Ubair](https://github.com/ubairrr)**
+
+[LinkedIn](https://www.linkedin.com/in/mustafaubair) · [GitHub](https://github.com/ubairrr) · mustafaubair@gmail.com
+
+</div>
